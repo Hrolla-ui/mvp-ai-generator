@@ -1,4 +1,6 @@
 import streamlit as st
+st.write("Ar raktas rastas:", "HUGGINGFACE_API_TOKEN" in st.secrets)
+
 from transformers import pipeline
 
 st.title("AI Turinio Generatorius (MVP)")
