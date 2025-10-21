@@ -1,6 +1,5 @@
 import streamlit as st
 from transformers import pipeline
-import streamlit.components.v1 as components
 
 st.set_page_config(page_title="AI Turinio Generatorius (MVP)", layout="wide")
 st.title("AI Turinio Generatorius (MVP)")
@@ -23,8 +22,8 @@ st.session_state['tema'] = st.text_area(
 # AI modelių pasirinkimas (alternatyvos)
 st.session_state['model_choice'] = st.selectbox(
     "Pasirinkite AI modelį:",
-    ["gpt2", "facebook/bloom-560m", "meta-llama/Llama-2-7b-hf"],
-    index=["gpt2", "facebook/bloom-560m", "meta-llama/Llama-2-7b-hf"].index(st.session_state['model_choice'])
+    ["gpt2", "bigscience/bloom-560m", "meta-llama/Llama-2-7b-hf"],
+    index=["gpt2", "bigscience/bloom-560m", "meta-llama/Llama-2-7b-hf"].index(st.session_state['model_choice'])
 )
 
 # Turinio tipas
@@ -53,24 +52,30 @@ if len(st.session_state['tema']) > MAX_CHARS:
     st.warning(f"Tekstas per ilgas! Prašome ne daugiau nei {MAX_CHARS} simbolių.")
     st.stop()
 
-# AI generatorius pagal pasirinkimą
-generator = pipeline(
-    "text-generation",
-    model=st.session_state['model_choice']
-)
+# Hugging Face Inference API generatorius
+def get_generator(model_name):
+    return pipeline(
+        "text-generation",
+        model=model_name,
+        use_auth_token=st.secrets["HUGGINGFACE_TOKEN"]
+    )
 
 # Generavimas
 if generate:
     if st.session_state['tema'].strip() != "":
         with st.spinner("Generuojama..."):
             prompt = f"Sukurk 3 {tipas} šiai temai: {st.session_state['tema']}, tonas: profesionalus."
-            result = generator(
-                prompt,
-                max_new_tokens=150,
-                do_sample=True,
-                temperature=0.7
-            )
-            st.session_state['output'] = result[0]['generated_text']
+            try:
+                generator = get_generator(st.session_state['model_choice'])
+                result = generator(
+                    prompt,
+                    max_new_tokens=150,
+                    do_sample=True,
+                    temperature=0.7
+                )
+                st.session_state['output'] = result[0]['generated_text']
+            except Exception as e:
+                st.error(f"Klaida generuojant tekstą: {e}")
     else:
         st.warning("Įveskite temą!")
 
@@ -81,6 +86,7 @@ if st.session_state['output']:
 # Modernus copy mygtukas su Tailwind stiliaus efektais
 if copy and st.session_state['output']:
     safe_text = st.session_state['output'].replace("`", "\\`").replace("\n", "\\n")
+    import streamlit.components.v1 as components
     components.html(f"""
         <div style="margin-top:10px;">
             <button 
