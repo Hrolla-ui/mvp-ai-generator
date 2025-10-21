@@ -63,11 +63,29 @@ if generate:
 if st.session_state['output']:
     st.text_area("Sugeneruotas tekstas:", st.session_state['output'], height=200)
 
-# Automatinis kopijavimas į clipboard per JS
+# Modernus copy mygtukas su Tailwind stiliaus efektais
 if copy and st.session_state['output']:
-    # HTML + JS mygtukas
+    safe_text = st.session_state['output'].replace("`", "\\`").replace("\n", "\\n")
     components.html(f"""
-        <button onclick="navigator.clipboard.writeText(`{st.session_state['output']}`)">
-            Tekstas nukopijuotas į clipboard!
-        </button>
-    """, height=50)
+        <div style="margin-top:10px;">
+            <button 
+                onclick="navigator.clipboard.writeText(`{safe_text}`); 
+                         this.innerText='Tekstas nukopijuotas!'; 
+                         setTimeout(()=>{{this.innerText='Kopijuoti';}}, 2000);" 
+                style="
+                    background-color: #4F46E5;
+                    color: white;
+                    font-weight: bold;
+                    padding: 10px 20px;
+                    border-radius: 8px;
+                    border: none;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                "
+                onmouseover="this.style.backgroundColor='#4338CA';"
+                onmouseout="this.style.backgroundColor='#4F46E5';"
+            >
+                Kopijuoti
+            </button>
+        </div>
+    """, height=70)
