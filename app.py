@@ -5,8 +5,7 @@ st.title("AI Turinio Generatorius (MVP)")
 
 generator = pipeline(
     "text-generation",
-    model="bigscience/bloom-560m",
-    use_auth_token=st.secrets["HUGGINGFACE_API_TOKEN"]
+    model="gpt2"
 )
 
 tema = st.text_input("Įveskite temą:")
@@ -18,7 +17,7 @@ if st.button("Generuoti"):
             prompt = f"Sukurk 3 {tipas} šiai temai: {tema}, tonas: profesionalus."
             result = generator(
                 prompt,
-                max_new_tokens=50,  # mažiau ir saugiau CPU
+                max_new_tokens=50,
                 do_sample=True,
                 temperature=0.7
             )
