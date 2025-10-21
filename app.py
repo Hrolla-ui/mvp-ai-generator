@@ -10,18 +10,21 @@ if 'output' not in st.session_state:
     st.session_state['output'] = ""
 if 'tema' not in st.session_state:
     st.session_state['tema'] = ""
-
-# AI generatorius
-generator = pipeline(
-    "text-generation",
-    model="gpt2"
-)
+if 'model_choice' not in st.session_state:
+    st.session_state['model_choice'] = "gpt2"
 
 # Teksto įvedimo laukas
 st.session_state['tema'] = st.text_area(
     "Įveskite savo temą čia:", 
     st.session_state['tema'], 
     height=100
+)
+
+# AI modelių pasirinkimas (alternatyvos)
+st.session_state['model_choice'] = st.selectbox(
+    "Pasirinkite AI modelį:",
+    ["gpt2", "facebook/bloom-560m", "meta-llama/Llama-2-7b-hf"],
+    index=["gpt2", "facebook/bloom-560m", "meta-llama/Llama-2-7b-hf"].index(st.session_state['model_choice'])
 )
 
 # Turinio tipas
@@ -43,6 +46,18 @@ with col3:
 if clear:
     st.session_state['tema'] = ""
     st.session_state['output'] = ""
+
+# Saugumo patikra: tekstas per ilgas
+MAX_CHARS = 300
+if len(st.session_state['tema']) > MAX_CHARS:
+    st.warning(f"Tekstas per ilgas! Prašome ne daugiau nei {MAX_CHARS} simbolių.")
+    st.stop()
+
+# AI generatorius pagal pasirinkimą
+generator = pipeline(
+    "text-generation",
+    model=st.session_state['model_choice']
+)
 
 # Generavimas
 if generate:
